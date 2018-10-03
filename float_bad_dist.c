@@ -1,23 +1,22 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <math.h>
 
 uint64_t histogram[100];
 
-uint64_t get_random_bits() {
-    FILE *f;
+
+uint64_t get_random_bits(FILE *f) {
     uint64_t x;
-    f = fopen("/dev/urandom", "rb");
     fread(&x,1,8,f);
-    fclose(f); 
     return x;
 }
 
-uint64_t choose_exponent() {
+uint64_t choose_exponent(FILE *f) {
     uint64_t e;
 
     do {
-        e = (get_random_bits() & 0x3FF); 
+        e = (get_random_bits(f) & 0x3FF); 
     } while (e > 1022);
     return e;
 }
@@ -49,16 +48,22 @@ int main() {
     double *fp;
     double f;
     int i;
+    
+    FILE *dur;
+    dur = fopen("/dev/urandom", "rb");
+
     clear_histogram();
     for (i=0;i<1000000;i++) {
-        mantissa = get_random_bits() & 0x0fffffffffffff;
-        exponent = choose_exponent();
+        mantissa = get_random_bits(dur) & 0x0fffffffffffff;
+        exponent = choose_exponent(dur);
         sign = 0;
-        x = (sign << 63) | ((exponent & 0x7ff) << 52) | mantissa;
+        x = (sign << 63) | (exponent << 52) | mantissa;
         fp = (double *)&x;
         f = *fp;
         add_to_histogram(f);
     }
-    for (i=0;i<100;i++) printf("%d\n",histogram[i]);
+    for (i=0;i<100;i++) printf("%llu\n",histogram[i]);
+    fclose(dur);
+    return 1;
 }
 
