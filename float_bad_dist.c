@@ -81,6 +81,6 @@ int main(int argc, char *argv[]) {
         printf("%1.8f to %1.8f :  %llu\n",min,max,histogram[i]);
     }
     fclose(dur);
-    return 1;
+    return 0;
 }
 
